@@ -85,7 +85,9 @@ Articulated stickmen with two-segment arms and legs, walk cycle, body bob, tucke
 
 ## Screenshots
 
-`screenshot_title.png`, `screenshot_play.png`, `screenshot_jump.png`
+![description](screenshot_title.png)
+![description](screenshot_jump.png)
+![description](screenshot_play.png)
 
 ## Credit
 
