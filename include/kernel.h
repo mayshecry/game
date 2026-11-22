@@ -1,58 +1,76 @@
 #ifndef KERNEL_H
 #define KERNEL_H
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-long inflate_raw(const uint8_t* in, size_t in_len, uint8_t* out, size_t out_len);
-long inflate_zlib(const uint8_t* in, size_t in_len, uint8_t* out, size_t out_len);
-long inflate_gzip(const uint8_t* in, size_t in_len, uint8_t* out, size_t out_len);
+
+long inflate_raw(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_len);
+long inflate_zlib(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_len);
+long inflate_gzip(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_len);
+
 enum vga_color {
-VGA_COLOR_BLACK = 0,
-VGA_COLOR_BLUE = 1,
-VGA_COLOR_GREEN = 2,
-VGA_COLOR_CYAN = 3,
-VGA_COLOR_RED = 4,
-VGA_COLOR_MAGENTA = 5,
-VGA_COLOR_BROWN = 6,
-VGA_COLOR_LIGHT_GREY = 7,
-VGA_COLOR_DARK_GREY = 8,
-VGA_COLOR_LIGHT_BLUE = 9,
-VGA_COLOR_LIGHT_GREEN = 10,
-VGA_COLOR_LIGHT_CYAN = 11,
-VGA_COLOR_LIGHT_RED = 12,
-VGA_COLOR_LIGHT_MAGENTA = 13,
-VGA_COLOR_LIGHT_BROWN = 14,
-VGA_COLOR_WHITE = 15
+    VGA_COLOR_BLACK = 0,
+    VGA_COLOR_BLUE = 1,
+    VGA_COLOR_GREEN = 2,
+    VGA_COLOR_CYAN = 3,
+    VGA_COLOR_RED = 4,
+    VGA_COLOR_MAGENTA = 5,
+    VGA_COLOR_BROWN = 6,
+    VGA_COLOR_LIGHT_GREY = 7,
+    VGA_COLOR_DARK_GREY = 8,
+    VGA_COLOR_LIGHT_BLUE = 9,
+    VGA_COLOR_LIGHT_GREEN = 10,
+    VGA_COLOR_LIGHT_CYAN = 11,
+    VGA_COLOR_LIGHT_RED = 12,
+    VGA_COLOR_LIGHT_MAGENTA = 13,
+    VGA_COLOR_LIGHT_BROWN = 14,
+    VGA_COLOR_WHITE = 15
 };
+
 extern uint32_t vga_to_rgb[];
+
 static inline uint8_t vga_entry_color(uint8_t fg, uint8_t bg) {
-return fg | bg << 4;
+    return fg | bg << 4;
 }
+
 static inline void outb(uint16_t port, uint8_t val) {
-asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
+    asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
 }
+
 static inline void outw(uint16_t port, uint16_t val) {
-asm volatile ( "outw %0, %1" : : "a"(val), "Nd"(port) );
+    asm volatile("outw %0, %1" : : "a"(val), "Nd"(port));
 }
+
 static inline void outl(uint16_t port, uint32_t val) {
-asm volatile ( "outl %0, %1" : : "a"(val), "Nd"(port) );
+    asm volatile("outl %0, %1" : : "a"(val), "Nd"(port));
 }
+
 static inline uint16_t inw(uint16_t port) {
-uint16_t ret; asm volatile ("inw %1, %0" : "=a"(ret) : "Nd"(port)); return ret;
+    uint16_t ret;
+    asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
 }
+
 static inline uint8_t inb(uint16_t port) {
-uint8_t ret; asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port)); return ret;
+    uint8_t ret;
+    asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
 }
+
 static inline uint32_t inl(uint16_t port) {
-uint32_t ret; asm volatile ("inl %1, %0" : "=a"(ret) : "Nd"(port)); return ret;
+    uint32_t ret;
+    asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
 }
-extern uint32_t* lfbptr;
-extern uint32_t* hw_lfbptr;
+
+extern uint32_t *lfbptr;
+extern uint32_t *hw_lfbptr;
 void serial_init(void);
 void serial_putc(char c);
 int serial_input_ready(void);
 int serial_getchar_nonblocking(void);
-void serial_puts(const char* text);
+void serial_puts(const char *text);
 void serial_puthex32(uint32_t v);
 void serial_putdec(uint32_t v);
 extern uint64_t screen_width;
@@ -70,25 +88,29 @@ extern uint32_t ui_footer_h;
 extern size_t term_cols;
 extern size_t term_max_row;
 extern size_t content_first_row;
+
 typedef enum { TASK_RUNNING, TASK_READY, TASK_SLEEPING, TASK_ZOMBIE } task_state_t;
+
 typedef struct task {
-int id;
-uint64_t rsp;
-task_state_t state;
-int cpu_id;
-char name[16];
-struct task* next;
-uint32_t syscall_count;
-uint32_t cpu_usage;
+    int id;
+    uint64_t rsp;
+    task_state_t state;
+    int cpu_id;
+    char name[16];
+    struct task *next;
+    uint32_t syscall_count;
+    uint32_t cpu_usage;
 } task_t;
+
 typedef struct {
-int id;
-task_t* current_task;
-bool started;
+    int id;
+    task_t *current_task;
+    bool started;
 } cpu_t;
+
 #define MAX_CPUS 16
 extern cpu_t cpus[MAX_CPUS];
-extern task_t* task_list;
+extern task_t *task_list;
 extern int next_pid;
 typedef volatile int spinlock_t;
 extern spinlock_t task_list_lock;
@@ -99,7 +121,15 @@ extern uintptr_t free_memory_start;
 extern uintptr_t free_memory_end;
 extern char current_user[32];
 extern uint8_t font8x8[96][8];
-typedef enum { KERNEL_MODE_CLI, KERNEL_MODE_EDITOR, KERNEL_MODE_FAQ, KERNEL_MODE_SETTINGS, KERNEL_MODE_DESKTOP } kernel_mode_t;
+
+typedef enum {
+    KERNEL_MODE_CLI,
+    KERNEL_MODE_EDITOR,
+    KERNEL_MODE_FAQ,
+    KERNEL_MODE_SETTINGS,
+    KERNEL_MODE_DESKTOP
+} kernel_mode_t;
+
 extern kernel_mode_t current_kernel_mode;
 extern bool shift_pressed;
 extern bool ctrl_pressed;
@@ -113,28 +143,32 @@ extern bool legacy_mode;
 extern bool kawaii_mode;
 #define MAX_PANES 4
 #define PANE_GAP 1
+
 typedef struct {
-size_t row;
-size_t col;
-uint8_t color;
-char command_buffer[80];
-size_t cmd_index;
-size_t col_start;
-size_t col_end;
-size_t prompt_end_col;
+    size_t row;
+    size_t col;
+    uint8_t color;
+    char command_buffer[80];
+    size_t cmd_index;
+    size_t col_start;
+    size_t col_end;
+    size_t prompt_end_col;
 } pane_t;
+
 extern pane_t panes[MAX_PANES];
 extern int pane_count;
 extern int active_pane;
 #define SCROLLBACK_LINES 100
 #define SCROLLBACK_COLS 100
 #define MAX_HISTORY 32
+
 typedef struct {
-char lines[SCROLLBACK_LINES][SCROLLBACK_COLS];
-uint8_t colors[SCROLLBACK_LINES][SCROLLBACK_COLS];
-int count;
-int top;
+    char lines[SCROLLBACK_LINES][SCROLLBACK_COLS];
+    uint8_t colors[SCROLLBACK_LINES][SCROLLBACK_COLS];
+    int count;
+    int top;
 } scrollback_t;
+
 extern scrollback_t scrollback;
 extern int scrollback_offset;
 extern char command_history[MAX_HISTORY][80];
@@ -150,12 +184,12 @@ extern uint32_t sys_cpu_history[SYS_CPU_HISTORY];
 extern int sys_cpu_history_pos;
 extern uint32_t sys_frames_rendered;
 extern uint32_t sys_frames_per_sec;
-extern char* terminal_capture_buffer;
+extern char *terminal_capture_buffer;
 extern int terminal_capture_len;
-extern uint8_t* terminal_capture_colorbuf;
+extern uint8_t *terminal_capture_colorbuf;
 extern int terminal_capture_cap;
 extern bool terminal_capture_cleared;
-void terminal_capture_begin(char* buf, uint8_t* colors, int cap);
+void terminal_capture_begin(char *buf, uint8_t *colors, int cap);
 void terminal_capture_end(void);
 extern bool terminal_in_desktop_window;
 extern int desktop_terminal_cols;
@@ -164,106 +198,115 @@ extern int desktop_terminal_cols;
 #define terminal_color (panes[active_pane].color)
 #define command_buffer (panes[active_pane].command_buffer)
 #define command_index (panes[active_pane].cmd_index)
-extern uint32_t* faq_fb_backup;
+extern uint32_t *faq_fb_backup;
 extern uint32_t faq_backup_x;
 extern uint32_t faq_backup_y;
 extern uint32_t faq_backup_w;
 extern uint32_t faq_backup_h;
 extern int faq_saved_pane;
+
 typedef struct {
-int x;
-int y;
-uint8_t buttons;
-int dx;
-int dy;
-int wheel;
+    int x;
+    int y;
+    uint8_t buttons;
+    int dx;
+    int dy;
+    int wheel;
 } mouse_state_t;
+
 extern mouse_state_t mouse_state;
 extern int mouse_cursor_x;
 extern int mouse_cursor_y;
 extern char stack_top;
+
 struct registers {
-uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-uint64_t rdi, rsi, rbp, rbx, rdx, rcx, rax;
-uint64_t int_no, err_code;
-uint64_t rip, cs, rflags, rsp, ss;
+    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+    uint64_t rdi, rsi, rbp, rbx, rdx, rcx, rax;
+    uint64_t int_no, err_code;
+    uint64_t rip, cs, rflags, rsp, ss;
 };
-int strcmp(const char* s1, const char* s2);
-int strcasecmp(const char* s1, const char* s2);
-char* strcpy(char* dest, const char* src);
-char* strchr(const char* s, int c);
-char* strstr(const char* haystack, const char* needle);
-void* memcpy(void* dest, const void* src, size_t n);
-void* memset(void* s, int c, size_t n);
-size_t strlen(const char* str);
-size_t fast_strlen(const char* str);
-void hex_to_string(uint32_t value, char* buffer);
-void int_to_string(uint32_t value, char* buffer);
+
+int strcmp(const char *s1, const char *s2);
+int strcasecmp(const char *s1, const char *s2);
+char *strcpy(char *dest, const char *src);
+char *strchr(const char *s, int c);
+char *strstr(const char *haystack, const char *needle);
+void *memcpy(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+size_t strlen(const char *str);
+size_t fast_strlen(const char *str);
+void hex_to_string(uint32_t value, char *buffer);
+void int_to_string(uint32_t value, char *buffer);
 void delay_ms(uint32_t ms);
+
 typedef struct {
-uint64_t start;
-uint64_t end;
+    uint64_t start;
+    uint64_t end;
 } pmm_memory_region_t;
+
 void init_descriptor_tables(void);
 void pmm_init(uint64_t mem_size_bytes);
-void pmm_init_regions(const pmm_memory_region_t* regions, uint32_t count);
+void pmm_init_regions(const pmm_memory_region_t *regions, uint32_t count);
 uint64_t pmm_free_memory_bytes(void);
 void pmm_reserve(uintptr_t base, size_t len);
-void* kmalloc(size_t size);
-void kfree(void* ptr);
-size_t ksize(void* ptr);
-uintptr_t virt_to_phys(void* addr);
+void *kmalloc(size_t size);
+void kfree(void *ptr);
+size_t ksize(void *ptr);
+uintptr_t virt_to_phys(void *addr);
 uint32_t pci_config_read(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 void pci_config_write(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t value);
 void pci_list_devices(void);
-void get_cpu_model(char* buffer);
+void get_cpu_model(char *buffer);
 void shutdown(void);
 #define MAX_NODES 128
 #define MAX_CHILDREN 64
+
 typedef enum { FS_DIRECTORY, FS_FILE } node_type_t;
+
 struct fs_node {
-char name[32];
-node_type_t type;
-struct fs_node* parent;
-struct fs_node* children[MAX_CHILDREN];
-int num_children;
-char* content;
-uint32_t content_capacity;
-int content_len;
-uint32_t permissions;
-uint8_t disk_backed;
-uint8_t disk_drive;
-uint16_t disk_entry_offset;
-uint32_t disk_cluster;
-uint32_t disk_size;
-uint32_t disk_capacity;
-uint32_t disk_entry_lba;
-uint8_t allocated;
+    char name[32];
+    node_type_t type;
+    struct fs_node *parent;
+    struct fs_node *children[MAX_CHILDREN];
+    int num_children;
+    char *content;
+    uint32_t content_capacity;
+    int content_len;
+    uint32_t permissions;
+    uint8_t disk_backed;
+    uint8_t disk_drive;
+    uint16_t disk_entry_offset;
+    uint32_t disk_cluster;
+    uint32_t disk_size;
+    uint32_t disk_capacity;
+    uint32_t disk_entry_lba;
+    uint8_t allocated;
 };
 extern struct fs_node node_pool[MAX_NODES];
 extern int pool_index;
-extern struct fs_node* root;
-extern struct fs_node* current_dir;
-struct fs_node* find_node(struct fs_node* parent, const char* name);
-struct fs_node* search_path(const char* name);
-struct fs_node* fs_resolve_path(const char* path);
-struct fs_node* create_node(const char* name, node_type_t type, struct fs_node* parent);
-const char* fs_node_data(const struct fs_node* node);
-int fs_node_write(struct fs_node* node, uint32_t offset, const void* data, uint32_t length);
-int fs_node_truncate(struct fs_node* node, uint32_t length);
-int fs_node_remove(struct fs_node* node);
-int fs_node_sync(struct fs_node* node);
-int fat16_mount(int drive, struct fs_node* mountpoint);
-int fat16_unmount(struct fs_node* mountpoint);
-int fat16_is_mounted(struct fs_node* node);
+extern struct fs_node *root;
+extern struct fs_node *current_dir;
+struct fs_node *find_node(struct fs_node *parent, const char *name);
+struct fs_node *search_path(const char *name);
+struct fs_node *fs_resolve_path(const char *path);
+struct fs_node *create_node(const char *name, node_type_t type, struct fs_node *parent);
+const char *fs_node_data(const struct fs_node *node);
+int fs_node_write(struct fs_node *node, uint32_t offset, const void *data, uint32_t length);
+int fs_node_truncate(struct fs_node *node, uint32_t length);
+int fs_node_remove(struct fs_node *node);
+int fs_node_sync(struct fs_node *node);
+int fat16_mount(int drive, struct fs_node *mountpoint);
+int fat16_unmount(struct fs_node *mountpoint);
+int fat16_is_mounted(struct fs_node *node);
 void fs_initialize(void);
 void fs_cache_clear(void);
-void execute_command(char* cmd);
+void execute_command(char *cmd);
 void draw_char(char c, int x, int y, uint32_t fg, uint32_t bg);
-void term_put_char_win(char c, int x, int y, uint32_t fg, uint32_t bg, int cx0, int cy0, int cx1, int cy1);
+void term_put_char_win(char c, int x, int y, uint32_t fg, uint32_t bg, int cx0, int cy0, int cx1,
+                       int cy1);
 void draw_pixel(int x, int y, uint32_t color);
 void draw_rect(int x, int y, int w, int h, uint32_t color);
-void draw_string_px(const char* s, int x, int y, uint32_t fg, uint32_t bg);
+void draw_string_px(const char *s, int x, int y, uint32_t fg, uint32_t bg);
 uint32_t col_px(size_t col);
 uint32_t row_px(size_t row);
 void terminal_putentryat(char c, uint8_t color, size_t x, size_t y);
@@ -273,24 +316,27 @@ void terminal_putchar_cli(char c);
 void terminal_putchar_editor(char c);
 void terminal_putchar(char c);
 void draw_cursor(void);
-void terminal_writestring(const char* data);
-void terminal_write_direct(const char* data);
+void terminal_writestring(const char *data);
+void terminal_write_direct(const char *data);
 void terminal_scroll(void);
 void terminal_clear(void);
 void terminal_initialize(void);
 void terminal_draw_scrollback(void);
 void fb_stride_ready(void);
-uint32_t* fb_frame_begin(void);
+uint32_t *fb_frame_begin(void);
 void fb_layer_begin(void);
 void fb_layer_end(void);
 void fb_bg_to_back(void);
 void fb_bg_restore(int x0, int y0, int x1, int y1);
 void fb_present(int x0, int y0, int x1, int y1);
 void fb_present_bg_all(void);
+void fb_present_all(void);
+void fb_compose_begin(void);
+void fb_compose_end(void);
 void fb_direct_begin(void);
 void fb_direct_end(void);
 void fb_bg_restore_direct(int x0, int y0, int x1, int y1);
-uint32_t* fb_back_begin(void);
+uint32_t *fb_back_begin(void);
 void fb_back_end(void);
 void ui_init_metrics(void);
 void draw_pane_tabs(void);
@@ -319,12 +365,12 @@ void mouse_wait(void);
 uint8_t mouse_read(void);
 void mouse_update_cursor(void);
 void mouse_draw_cursor_only(void);
-void irq_handler(struct registers* r);
-void isr_handler(struct registers* r);
-void syscall_handler(struct registers* r);
+void irq_handler(struct registers *r);
+void isr_handler(struct registers *r);
+void syscall_handler(struct registers *r);
 void flush_screen_to_hw(void);
 void flush_rows_to_hw(int y0, int y1);
-void fill32(uint32_t* dst, uint32_t value, size_t count);
+void fill32(uint32_t *dst, uint32_t value, size_t count);
 void rtc_init(void);
 void rtc_read_time(void);
 extern uint32_t rtc_seconds;
